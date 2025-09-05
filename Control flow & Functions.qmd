@@ -1,0 +1,100 @@
+---
+title: "Control Flow & Functions - ST 558"
+format: html
+editor: visual
+---
+
+## Control Flow Practice
+
+First, we will start by reading in an existing .rda file, which has a version of the list I created in the last part of the previous homework.
+```{r}
+load("hw2_list.rda")
+bp_list
+```
+
+Now, we will characterize the post-treatment blood pressure measurement as optimal, borderline, or high.
+```{r}
+bp_list$treatment$status <- character(20)
+
+for (i in 1:20) {
+  if (bp_list$treatment$post_bp[i] <= 120){
+    bp_list$treatment$status[i] <- "optimal"
+  } else if (bp_list$treatment$post_bp[i] <= 130){
+    bp_list$treatment$status[i] <- "borderline"
+  } else {
+    bp_list$treatment$status[i] <- "high"
+  }
+}
+
+head(bp_list$treatment)
+```
+
+Similarly, we will characterize the blood pressure measurements for the placebo data frame.
+```{r}
+bp_list$placebo$status <- character(10)
+
+for (i in 1:10) {
+  if (bp_list$placebo$post_bp[i] <= 120){
+    bp_list$placebo$status[i] <- "optimal"
+  } else if (bp_list$placebo$post_bp[i] <= 130){
+    bp_list$placebo$status[i] <- "borderline"
+  } else {
+    bp_list$placebo$status[i] <- "high"
+  }
+}
+
+head(bp_list$placebo)
+```
+
+
+## Function Writing
+
+Here, I will write a function that takes in a list with two data frames (treatment and placebo) as an argument, takes in an R function (with default value set to "mean"), and finds the statistic of interest for the pre, post, and diff columns of both data frames.
+```{r}
+summarize_bp <- function(bp_list, stat = "mean"){
+  my_fun <- get(stat)
+  
+  treatment_pre <- my_fun(bp_list$treatment$pre_bp)
+  treatment_post <- my_fun(bp_list$treatment$post_bp)
+  treatment_diff <- my_fun(bp_list$treatment$diff_bp)
+  
+  placebo_pre <- my_fun(bp_list$placebo$pre_bp)
+  placebo_post <- my_fun(bp_list$placebo$post_bp)
+  placebo_diff <- my_fun(bp_list$placebo$diff_bp)
+  
+  # Vector with statistic values
+  results <- c(treatment_pre, treatment_post, treatment_diff,
+               placebo_pre, placebo_post, placebo_diff)
+  
+  # Create vector of names
+  names(results) <- c(
+    paste0("treatment_pre_", stat),
+    paste0("treatment_post_", stat),
+    paste0("treatment_diff_", stat),
+    paste0("placebo_pre_", stat),
+    paste0("placebo_post_", stat),
+    paste0("placebo_diff_", stat)
+  )
+  
+  return(results)
+}
+```
+
+With the function created, we will apply it to our list of data frames (treatment and placebo).
+```{r}
+# Without specifying the statistic (default is mean).
+summarize_bp(bp_list)
+
+# Specify var
+summarize_bp(bp_list, "var")
+
+# Specify sd
+summarize_bp(bp_list, "sd")
+
+# Specify min
+summarize_bp(bp_list, "min")
+
+# Specify max
+summarize_bp(bp_list, "max")
+```
+
